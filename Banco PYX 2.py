@@ -80,7 +80,7 @@ class Conta:
 
         return True
 
-class ContaCorrete(Conta):
+class ContaCorrente(Conta):
 
     def __init__(self, numero, cliente, limite = 500, limite_saque = 3):
         super().__init__(numero, cliente)
@@ -175,7 +175,7 @@ def menu():
             [1] Depositar
             [2] Sacar
             [3] Extrato
-            [4] Cadastrar Usuario
+            [4] Cadastrar cliente
             [5] Cadastrar Conta
             [6] Listar Contas
             [0] Sair
@@ -183,51 +183,50 @@ def menu():
             =>"""
             return int(input(menu))
 
-def cadastrar_usuario(usuarios):
+def criar_cliente(clientes):
     
-     cpf = input("Digite o CPF: ")
-     usuario = filtrar_usuario(cpf,usuarios)
+    cpf = input("informe o CPF do cliente:")
+    cliente = filtrar_cliente(cpf,clientes) 
 
-     if usuario:
-        print("Usuario possui cadastro")
-
+    if cliente:
+        print("Cliente ja cadastrado!")
         return
-     nome = input("Digite o nome: ")
-     dt_nascimento = input("Digite a data de nascimento (dd-mm-aaaa): ")
-     endereco = input("Infome o endereco (logradouro, numero, bairro - cidade/sigla do estado): ")
-     usuarios.append({"nome:":nome, "dt_nascimento":dt_nascimento, "cpf": cpf, "endereco": endereco})
 
-     print("Usuario cadastrado!")
+    nome = input("Digite o nome: ")
+    data_nascimento = input("Digite a data de nascimento (dd-mm-aaaa): ")
+    endereco = input("Infome o endereco (logradouro, numero, bairro - cidade/sigla do estado): ")
+    
+    cliente = PessoaFisica(nome=nome,data_nascimento=data_nascimento,cpf=cpf, endereco = endereco)
+
+    cliente.append(cliente)
+
+    print("Cliente cadastrado!")
 
 def filtrar_cliente(cpf, clientes):
    clientes_filtrados = [cliente for cliente in clientes if cliente.cpf == cpf ]
    return clientes_filtrados[0] if clientes_filtrados else None  
 
-def cadastrar_conta(agencia, numero_conta, usuarios):
+def criar_conta(numero_conta, clientes, contas):
 
     cpf = input("Digite o cpf do usuario: ")
-    usuario = filtrar_usuario(cpf, usuarios)
+    cliente = filtrar_cliente(cpf, clientes)
 
-    if usuario:
-         print("Conta criada com sucesso!")
-         return {"agencia": agencia, "numero_conta": numero_conta, "usuario": usuario}
+    if not cliente:
+         print("Usuario nao cadastrado!")
+         return
     
-    print("Usuario nao cadastrado!")
+    conta = ContaCorrente.nova_conta(cliente=cliente,
+    numero = numero_conta)                                 
+    contas.append(conta)
+    cliente.conta.append(conta)                               
+        
+    print("Conta criada com sucesso!")
 
 def listar_contas (contas):
     
-    if contas == []:
-        print("Nenhuma conta cadastrada!")
-    else:   
-        for conta in contas:
-            linha = f"""
-    Agencia: {conta['agencia']}
-    Conta Corrente: {conta['numero_conta']}
-    Titular: {conta['usuario']}
-    """
-            print("=" * 80)
-            print(linha)
-            print("=" * 80)
+    for conta in contas:
+        print("=" * 100)
+        print(textwrap.dedent(str(conta)))
 
 def recuperar_conta_cliente(cliente):
     if not cliente.contas:
@@ -235,7 +234,6 @@ def recuperar_conta_cliente(cliente):
         return
     
     return cliente.contas[0]
-#05:46 - time
 
 def depositar(clientes):
     cpf = input("informe o CPF do cliente:")
@@ -253,6 +251,49 @@ def depositar(clientes):
         return
     
     cliente.realizar_transacao(conta, transacao)
+
+def sacar(clientes):
+    cpf = input("informe o CPF do cliente:")
+    cliente = filtrar_cliente(cpf,clientes)
+
+    if not cliente:
+        print("Cliente nao cadastrado!")
+        return
+    
+    valor = float(input("Informe o valor do saque:"))
+    transacao = Saque(valor)
+
+    conta = recuperar_conta_cliente(cliente)
+    if not conta:
+        return
+    
+    cliente.realizar_transacao(conta, transacao)
+
+def exibir_extrato(clientes):
+    cpf = input("informe o CPF do cliente:")
+    cliente = filtrar_cliente(cpf,clientes) 
+
+    if not cliente:
+        print("Cliente nao cadastrado!")
+        return
+    
+    conta = recuperar_conta_cliente(cliente)
+    if not conta:
+        return
+
+    print("\n==================== EXTRATO ====================")
+    transacoes = conta.historico.trasacoes
+
+    extrato = ""
+    if not transacoes:
+        extrato = "Nao foram encontrados registros"
+    else:
+        for transacao in transacoes:
+            extrato += f"\n{transacao['tipo']}:\n\t R$ {transacao['valor']:.2f}"
+
+    print(extrato)
+    print(f"\nSaldo:\n\tR$ {conta.saldo:.2f}")
+    print("===========================================")
 
 def main():
 
