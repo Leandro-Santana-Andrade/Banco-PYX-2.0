@@ -230,7 +230,12 @@ def listar_contas (contas):
             print("=" * 80)
 
 def recuperar_conta_cliente(cliente):
-    pass
+    if not cliente.contas:
+        print("Cliente sem conta!")
+        return
+    
+    return cliente.contas[0]
+#05:46 - time
 
 def depositar(clientes):
     cpf = input("informe o CPF do cliente:")
